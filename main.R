@@ -61,22 +61,21 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
 #'
 #' @examples results <- return_deseq_res(se, ~ timepoint)
 return_deseq_res <- function(se, design) {
-  # build DESeq2 dataset
+  # build dataset
   dds <- DESeq2::DESeqDataSet(se, design = design)
   
-  # run DESeq2 pipeline
+  # 🔥 CRITICAL FIX: set reference level here
+  dds$timepoint <- relevel(dds$timepoint, ref = "vP0")
+  
+  # run DESeq2
   dds <- DESeq2::DESeq(dds)
   
   # extract results
   res <- DESeq2::results(dds)
   
-  # convert to dataframe
-  res_df <- as.data.frame(res)
-  
-  # return both objects
   return(list(
     dds = dds,
-    results = res_df
+    results = as.data.frame(res)
   ))
 }
 
@@ -262,37 +261,22 @@ plot_volcano <- function(labeled_results) {
 #' @examples rnk_list <- make_ranked_log2fc(labeled_results, 'data/id2gene.txt')
 
 make_ranked_log2fc <- function(labeled_results, id2gene_path) {
-  # read ID mapping file
-  id_map <- read.delim(id2gene_path, stringsAsFactors = FALSE, header = TRUE)
+  id_map <- read.delim(id2gene_path, stringsAsFactors = FALSE)
   
-  # ensure gene ID column exists in results
-  if (!"genes" %in% colnames(labeled_results)) {
-    stop("Column 'genes' not found in labeled_results")
-  }
+  colnames(id_map)[1] <- "genes"
+  colnames(id_map)[2] <- "symbol"
   
-  # merge to get gene symbols
-  merged <- merge(
-    labeled_results,
-    id_map,
-    by.x = "genes",
-    by.y = colnames(id_map)[1],
-    all.x = TRUE
-  )
+  merged <- merge(labeled_results, id_map, by = "genes", all.x = TRUE)
   
-  # assume second column in mapping is gene symbol
-  gene_symbol_col <- colnames(id_map)[2]
+  # remove NA symbols but KEEP structure
+  merged <- merged[!is.na(merged$symbol), ]
   
-  # remove NA gene symbols
-  merged <- merged[!is.na(merged[[gene_symbol_col]]), ]
-  
-  # rank by log2FC descending
   merged <- merged[order(merged$log2FoldChange, decreasing = TRUE), ]
   
-  # create named vector
-  ranked_vec <- merged$log2FoldChange
-  names(ranked_vec) <- merged[[gene_symbol_col]]
+  vec <- merged$log2FoldChange
+  names(vec) <- merged$symbol
   
-  return(ranked_vec)
+  return(vec)
 }
 
 #' Function to run fgsea with arguments for min and max gene set size
