@@ -24,11 +24,12 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
   counts <- read.delim(counts_csv, header = TRUE, stringsAsFactors = FALSE)
   meta <- read.csv(metafile_csv, stringsAsFactors = FALSE)
   
-  # subset metadata to selected timepoints
+  # subset metadata
   meta <- meta[meta$timepoint %in% selected_times, ]
   
-  # ✔️ FIX: set correct factor order (vP0 is reference)
-  meta$timepoint <- factor(meta$timepoint, levels = c("vP0", "vAd"))
+  # HARD FIX for DESeq2 directionality
+  meta$timepoint <- factor(meta$timepoint)
+  meta$timepoint <- relevel(meta$timepoint, ref = "vP0")
   
   # match sample columns
   sample_cols <- intersect(colnames(counts), meta$samplename)
@@ -264,22 +265,28 @@ plot_volcano <- function(labeled_results) {
 #' @examples rnk_list <- make_ranked_log2fc(labeled_results, 'data/id2gene.txt')
 
 make_ranked_log2fc <- function(labeled_results, id2gene_path) {
+  # load ID → gene symbol mapping
   id_map <- read.delim(id2gene_path, stringsAsFactors = FALSE)
   
+  # standardize column names (robust to file formatting)
   colnames(id_map)[1] <- "genes"
   colnames(id_map)[2] <- "symbol"
   
+  # merge keeping ALL genes from DESeq2 results
   merged <- merge(labeled_results, id_map, by = "genes", all.x = TRUE)
   
-  # remove NA symbols but KEEP structure
-  merged <- merged[!is.na(merged$symbol), ]
+  # ✔️ FIX: do NOT drop genes with missing symbols
+  # instead, fallback to original ID so nothing is lost
+  merged$symbol[is.na(merged$symbol) | merged$symbol == ""] <- merged$genes
   
+  # sort by log2FC descending
   merged <- merged[order(merged$log2FoldChange, decreasing = TRUE), ]
   
-  vec <- merged$log2FoldChange
-  names(vec) <- merged$symbol
+  # create named vector
+  ranked_vec <- merged$log2FoldChange
+  names(ranked_vec) <- merged$symbol
   
-  return(vec)
+  return(ranked_vec)
 }
 
 #' Function to run fgsea with arguments for min and max gene set size
