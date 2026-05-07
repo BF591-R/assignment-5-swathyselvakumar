@@ -68,7 +68,8 @@ return_deseq_res <- function(se, design) {
   # build dataset
   dds <- DESeq2::DESeqDataSet(se, design = design)
   
-  # 🔥 CRITICAL FIX: set reference level here
+  # 🔥 CRITICAL FIX: explicitly set reference level HERE
+  dds$timepoint <- factor(dds$timepoint)
   dds$timepoint <- relevel(dds$timepoint, ref = "vP0")
   
   # run DESeq2
@@ -265,28 +266,25 @@ plot_volcano <- function(labeled_results) {
 #' @examples rnk_list <- make_ranked_log2fc(labeled_results, 'data/id2gene.txt')
 
 make_ranked_log2fc <- function(labeled_results, id2gene_path) {
-  # load ID → gene symbol mapping
   id_map <- read.delim(id2gene_path, stringsAsFactors = FALSE)
   
-  # standardize column names (robust to file formatting)
   colnames(id_map)[1] <- "genes"
   colnames(id_map)[2] <- "symbol"
   
-  # merge keeping ALL genes from DESeq2 results
   merged <- merge(labeled_results, id_map, by = "genes", all.x = TRUE)
   
-  # ✔️ FIX: do NOT drop genes with missing symbols
-  # instead, fallback to original ID so nothing is lost
+  # fallback for missing symbols
   merged$symbol[is.na(merged$symbol) | merged$symbol == ""] <- merged$genes
   
-  # sort by log2FC descending
+  # 🔥 FIX: remove NA/Inf log2FC (fgsea requirement)
+  merged <- merged[is.finite(merged$log2FoldChange), ]
+  
   merged <- merged[order(merged$log2FoldChange, decreasing = TRUE), ]
   
-  # create named vector
-  ranked_vec <- merged$log2FoldChange
-  names(ranked_vec) <- merged$symbol
+  vec <- merged$log2FoldChange
+  names(vec) <- merged$symbol
   
-  return(ranked_vec)
+  return(vec)
 }
 
 #' Function to run fgsea with arguments for min and max gene set size
