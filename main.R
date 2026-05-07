@@ -67,7 +67,7 @@ return_deseq_res <- function(se, design) {
   dds$timepoint <- relevel(dds$timepoint, ref = "vP0")
   DESeq2::design(dds) <- design
   dds <- DESeq2::DESeq(dds)
-  res <- DESeq2::results(dds)
+  res <- DESeq2::results(dds, contrast = c("timepoint", "vAd", "vP0"))
   return(list(dds = dds, results = as.data.frame(res)))
 }
 
