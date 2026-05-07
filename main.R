@@ -64,10 +64,8 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
 #' @examples results <- return_deseq_res(se, ~ timepoint)
 return_deseq_res <- function(se, design) {
   dds <- DESeq2::DESeqDataSet(se, design = design)
-  
-  # Re-apply reference level without re-factoring (preserves existing levels)
-  dds$timepoint <- relevel(dds$timepoint, ref = "vP0")
-  
+  dds$timepoint <- relevel(factor(dds$timepoint), ref = "vP0")
+  DESeq2::design(dds) <- design
   dds <- DESeq2::DESeq(dds)
   res <- DESeq2::results(dds)
   return(list(dds = dds, results = as.data.frame(res)))
@@ -259,20 +257,19 @@ make_ranked_log2fc <- function(labeled_results, id2gene_path) {
   colnames(id_map)[1] <- "genes"
   colnames(id_map)[2] <- "symbol"
   
-  merged <- merge(labeled_results, id_map, by = "genes", all.x = FALSE)
-  # all.x = FALSE: drop genes with no symbol mapping entirely
+  # Strip version suffix from both sides before merging
+  labeled_results$genes_stripped <- sub("\\.\\d+$", "", labeled_results$genes)
+  id_map$genes <- sub("\\.\\d+$", "", id_map$genes)
   
-  # keep only rows with a real symbol
+  merged <- merge(labeled_results, id_map, by.x = "genes_stripped", by.y = "genes", all.x = FALSE)
+  
   merged <- merged[!is.na(merged$symbol) & merged$symbol != "", ]
-  
-  # keep only finite log2FC
   merged <- merged[is.finite(merged$log2FoldChange), ]
   
-  # deduplicate: keep highest absolute log2FC per symbol
+  # Deduplicate: keep highest absolute log2FC per symbol
   merged <- merged[order(abs(merged$log2FoldChange), decreasing = TRUE), ]
   merged <- merged[!duplicated(merged$symbol), ]
   
-  # sort descending by log2FC
   merged <- merged[order(merged$log2FoldChange, decreasing = TRUE), ]
   
   vec <- setNames(merged$log2FoldChange, merged$symbol)
