@@ -1,0 +1,144 @@
+{
+  "tests": [
+    {
+      "name": "make_se(): returns a SummarizedExperiment object",
+      "setup": "awk -F '\t' '$1 == 1 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 1 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "make_se(): returns the right matrix dimensions, 55416 rows and 4 columns",
+      "setup": "awk -F '\t' '$1 == 2 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 2 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "make_se(): returns the colnames in coldata in the specified, correct order",
+      "setup": "awk -F '\t' '$1 == 3 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 3 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "make_se(): stores the counts as a matrix for DESeq2 in the SE object",
+      "setup": "awk -F '\t' '$1 == 4 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 4 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "return_deseq_res(): returns a list of the DESeq2 results and the dds object",
+      "setup": "awk -F '\t' '$1 == 5 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 5 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "return_deseq_res(): returns both the results and the dds object",
+      "setup": "awk -F '\t' '$1 == 6 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 6 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "label_res(): correctly labels each row by correct padj threshold and log2fc sign",
+      "setup": "awk -F '\t' '$1 == 7 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 7 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "DESeq2 results return the same directionality for most significant genes: returns ENSMUSG00000026418.17 with a negative log2FC, if this fails, please check your factor reference levels",
+      "setup": "awk -F '\t' '$1 == 8 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 8 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "DESeq2 results return the same directionality for most significant genes: returns ENSMUSG00000002500.16 with a positive log2FC, if this fails, please check your factor reference levels",
+      "setup": "awk -F '\t' '$1 == 9 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 9 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "make_ranked_log2fc(): should return a named vector matching the known results",
+      "setup": "awk -F '\t' '$1 == 10 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 10 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "run_fgsea(): returns a tibble of the fgsea output",
+      "setup": "awk -F '\t' '$1 == 11 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 11 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "run_fgsea(): has the right columns",
+      "setup": "awk -F '\t' '$1 == 12 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 12 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "run_fgsea(): was run with the correct minSize",
+      "setup": "awk -F '\t' '$1 == 13 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 13 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    },
+    {
+      "name": "run_fgsea(): was run with the correct maxSize",
+      "setup": "awk -F '\t' '$1 == 14 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
+      "run": "awk -F '\t' '$1 == 14 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
+      "input": "",
+      "output": "",
+      "comparison": "exact",
+      "timeout": 10,
+      "points": 1
+    }
+  ]
+}
