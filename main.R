@@ -27,9 +27,7 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
   # subset metadata
   meta <- meta[meta$timepoint %in% selected_times, ]
   
-  # HARD FIX for DESeq2 directionality
-  meta$timepoint <- factor(meta$timepoint)
-  meta$timepoint <- relevel(meta$timepoint, ref = "vP0")
+  meta$timepoint <- factor(meta$timepoint, levels = c("vP0", selected_times[selected_times != "vP0"]))
   
   # match sample columns
   sample_cols <- intersect(colnames(counts), meta$samplename)
@@ -65,23 +63,11 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
 #'
 #' @examples results <- return_deseq_res(se, ~ timepoint)
 return_deseq_res <- function(se, design) {
-  # build dataset
   dds <- DESeq2::DESeqDataSet(se, design = design)
-  
-  # 🔥 CRITICAL FIX: explicitly set reference level HERE
-  dds$timepoint <- factor(dds$timepoint)
-  dds$timepoint <- relevel(dds$timepoint, ref = "vP0")
-  
-  # run DESeq2
+  # DON'T re-factor here — reference level is already set in make_se()
   dds <- DESeq2::DESeq(dds)
-  
-  # extract results
   res <- DESeq2::results(dds)
-  
-  return(list(
-    dds = dds,
-    results = as.data.frame(res)
-  ))
+  return(list(dds = dds, results = as.data.frame(res)))
 }
 
 #' Function that takes the DESeq2 results dataframe, converts it to a tibble and
@@ -267,23 +253,26 @@ plot_volcano <- function(labeled_results) {
 
 make_ranked_log2fc <- function(labeled_results, id2gene_path) {
   id_map <- read.delim(id2gene_path, stringsAsFactors = FALSE)
-  
   colnames(id_map)[1] <- "genes"
   colnames(id_map)[2] <- "symbol"
   
-  merged <- merge(labeled_results, id_map, by = "genes", all.x = TRUE)
+  merged <- merge(labeled_results, id_map, by = "genes", all.x = FALSE)
+  # all.x = FALSE: drop genes with no symbol mapping entirely
   
-  # fallback for missing symbols
-  merged$symbol[is.na(merged$symbol) | merged$symbol == ""] <- merged$genes
+  # keep only rows with a real symbol
+  merged <- merged[!is.na(merged$symbol) & merged$symbol != "", ]
   
-  # 🔥 FIX: remove NA/Inf log2FC (fgsea requirement)
+  # keep only finite log2FC
   merged <- merged[is.finite(merged$log2FoldChange), ]
   
+  # deduplicate: keep highest absolute log2FC per symbol
+  merged <- merged[order(abs(merged$log2FoldChange), decreasing = TRUE), ]
+  merged <- merged[!duplicated(merged$symbol), ]
+  
+  # sort descending by log2FC
   merged <- merged[order(merged$log2FoldChange, decreasing = TRUE), ]
   
-  vec <- merged$log2FoldChange
-  names(vec) <- merged$symbol
-  
+  vec <- setNames(merged$log2FoldChange, merged$symbol)
   return(vec)
 }
 
@@ -358,7 +347,4 @@ top_pathways <- function(fgsea_results, num_paths){
   
   return(p)
 }
-
-# debugging
-head(counts)
-colnames(counts)
+# making edits to commit
