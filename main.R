@@ -26,12 +26,13 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
   
   meta <- meta[meta$timepoint %in% selected_times, ]
   meta$timepoint <- factor(meta$timepoint, levels = c("vP0", selected_times[selected_times != "vP0"]))
-  
-  # Order metadata so vP0 samples come first, then others
   meta <- meta[order(meta$timepoint), ]
   
   sample_cols <- meta$samplename
   counts_sub <- counts[, sample_cols, drop = FALSE]
+  
+  # Set rownames of meta to samplename so colData aligns correctly
+  rownames(meta) <- meta$samplename
   
   stopifnot(all(meta$samplename == colnames(counts_sub)))
   
