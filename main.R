@@ -64,7 +64,10 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
 #' @examples results <- return_deseq_res(se, ~ timepoint)
 return_deseq_res <- function(se, design) {
   dds <- DESeq2::DESeqDataSet(se, design = design)
-  # DON'T re-factor here — reference level is already set in make_se()
+  
+  # Re-apply reference level without re-factoring (preserves existing levels)
+  dds$timepoint <- relevel(dds$timepoint, ref = "vP0")
+  
   dds <- DESeq2::DESeq(dds)
   res <- DESeq2::results(dds)
   return(list(dds = dds, results = as.data.frame(res)))
@@ -252,7 +255,7 @@ plot_volcano <- function(labeled_results) {
 #' @examples rnk_list <- make_ranked_log2fc(labeled_results, 'data/id2gene.txt')
 
 make_ranked_log2fc <- function(labeled_results, id2gene_path) {
-  id_map <- read.delim(id2gene_path, stringsAsFactors = FALSE)
+  id_map <- read.delim(id2gene_path, header = TRUE, stringsAsFactors = FALSE)
   colnames(id_map)[1] <- "genes"
   colnames(id_map)[2] <- "symbol"
   
