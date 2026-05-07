@@ -248,7 +248,7 @@ plot_volcano <- function(labeled_results) {
 #' @examples rnk_list <- make_ranked_log2fc(labeled_results, 'data/id2gene.txt')
 
 make_ranked_log2fc <- function(labeled_results, id2gene_path) {
-  id_map <- read.delim(id2gene_path, header = TRUE, stringsAsFactors = FALSE)
+  id_map <- read.delim(id2gene_path, header = FALSE, stringsAsFactors = FALSE)
   
   # Ensure correct column names regardless of what the file calls them
   colnames(id_map)[1] <- "ensembl"
