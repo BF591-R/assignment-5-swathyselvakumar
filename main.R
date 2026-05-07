@@ -24,29 +24,21 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
   counts <- read.delim(counts_csv, header = TRUE, stringsAsFactors = FALSE)
   meta <- read.csv(metafile_csv, stringsAsFactors = FALSE)
   
-  # subset metadata
   meta <- meta[meta$timepoint %in% selected_times, ]
-  
   meta$timepoint <- factor(meta$timepoint, levels = c("vP0", selected_times[selected_times != "vP0"]))
   
-  # match sample columns
-  sample_cols <- intersect(colnames(counts), meta$samplename)
+  # Order metadata so vP0 samples come first, then others
+  meta <- meta[order(meta$timepoint), ]
   
-  # subset counts
+  sample_cols <- meta$samplename
   counts_sub <- counts[, sample_cols, drop = FALSE]
   
-  # reorder metadata to match counts column order
-  meta <- meta[match(sample_cols, meta$samplename), ]
-  
-  # safety check
   stopifnot(all(meta$samplename == colnames(counts_sub)))
   
-  # build SummarizedExperiment
   se <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = as.matrix(counts_sub)),
     colData = meta
   )
-  
   return(se)
 }
 
@@ -254,14 +246,16 @@ plot_volcano <- function(labeled_results) {
 
 make_ranked_log2fc <- function(labeled_results, id2gene_path) {
   id_map <- read.delim(id2gene_path, header = TRUE, stringsAsFactors = FALSE)
-  colnames(id_map)[1] <- "genes"
+  
+  # Ensure correct column names regardless of what the file calls them
+  colnames(id_map)[1] <- "ensembl"
   colnames(id_map)[2] <- "symbol"
   
-  # Strip version suffixes (e.g. ENSMUSG00000051951.6 -> ENSMUSG00000051951)
+  # Strip version suffixes from both
   labeled_results$genes_stripped <- sub("\\.\\d+$", "", labeled_results$genes)
-  id_map$genes <- sub("\\.\\d+$", "", id_map$genes)
+  id_map$ensembl <- sub("\\.\\d+$", "", id_map$ensembl)
   
-  merged <- merge(labeled_results, id_map, by.x = "genes_stripped", by.y = "genes", all.x = FALSE)
+  merged <- merge(labeled_results, id_map, by.x = "genes_stripped", by.y = "ensembl", all.x = FALSE)
   
   merged <- merged[!is.na(merged$symbol) & merged$symbol != "", ]
   merged <- merged[is.finite(merged$log2FoldChange), ]
