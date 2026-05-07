@@ -71,7 +71,7 @@
       "points": 1
     },
     {
-      "name": "DESeq2 results return the same directionality for most significant genes: returns ENSMUSG00000026418.17 with a negative log2FC, if this fails,",
+      "name": "DESeq2 results return the same directionality for most significant genes: returns ENSMUSG00000026418.17 with a negative log2FC, if this fails, please check your factor reference levels",
       "setup": "awk -F '\t' '$1 == 8 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
       "run": "awk -F '\t' '$1 == 8 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
       "input": "",
@@ -81,29 +81,9 @@
       "points": 1
     },
     {
-      "name": null,
-      "setup": "awk -F '\t' '$1 ==      please check your factor reference levels { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
-      "run": "awk -F '\t' '$1 ==      please check your factor reference levels { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
-      "input": "",
-      "output": "",
-      "comparison": "exact",
-      "timeout": 10,
-      "points": 1
-    },
-    {
-      "name": "DESeq2 results return the same directionality for most significant genes: returns ENSMUSG00000002500.16 with a positive log2FC, if this fails,",
+      "name": "DESeq2 results return the same directionality for most significant genes: returns ENSMUSG00000002500.16 with a positive log2FC, if this fails, please check your factor reference levels",
       "setup": "awk -F '\t' '$1 == 9 { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
       "run": "awk -F '\t' '$1 == 9 { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
-      "input": "",
-      "output": "",
-      "comparison": "exact",
-      "timeout": 10,
-      "points": 1
-    },
-    {
-      "name": null,
-      "setup": "awk -F '\t' '$1 ==      please check your factor reference levels { print \"testnum:\", $1, \"\\nresult:\", $2, \"\\ntest:\", $3, \"\\nmessage:\", $4; exit}' test_results.csv",
-      "run": "awk -F '\t' '$1 ==      please check your factor reference levels { print; exit}' test_results.csv | grep -q -e 'success' -e 'warning'",
       "input": "",
       "output": "",
       "comparison": "exact",
