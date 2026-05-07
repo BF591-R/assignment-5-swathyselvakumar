@@ -24,22 +24,25 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
   counts <- read.delim(counts_csv, header = TRUE, stringsAsFactors = FALSE)
   meta <- read.csv(metafile_csv, stringsAsFactors = FALSE)
   
-  # subset metadata
+  # subset metadata to selected timepoints
   meta <- meta[meta$timepoint %in% selected_times, ]
   
+  # ✔️ FIX: set correct factor order (vP0 is reference)
   meta$timepoint <- factor(meta$timepoint, levels = c("vP0", "vAd"))
   
-  # sample matching
+  # match sample columns
   sample_cols <- intersect(colnames(counts), meta$samplename)
   
-  # KEEP ONLY SAMPLE COLUMNS (no probeid assumption!)
+  # subset counts
   counts_sub <- counts[, sample_cols, drop = FALSE]
   
-  # reorder metadata
+  # reorder metadata to match counts column order
   meta <- meta[match(sample_cols, meta$samplename), ]
   
+  # safety check
   stopifnot(all(meta$samplename == colnames(counts_sub)))
   
+  # build SummarizedExperiment
   se <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = as.matrix(counts_sub)),
     colData = meta
