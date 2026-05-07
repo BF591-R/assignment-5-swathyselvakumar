@@ -64,7 +64,7 @@ make_se <- function(counts_csv, metafile_csv, selected_times) {
 #' @examples results <- return_deseq_res(se, ~ timepoint)
 return_deseq_res <- function(se, design) {
   dds <- DESeq2::DESeqDataSet(se, design = design)
-  dds$timepoint <- relevel(factor(dds$timepoint), ref = "vP0")
+  dds$timepoint <- relevel(dds$timepoint, ref = "vP0")
   DESeq2::design(dds) <- design
   dds <- DESeq2::DESeq(dds)
   res <- DESeq2::results(dds)
@@ -257,7 +257,7 @@ make_ranked_log2fc <- function(labeled_results, id2gene_path) {
   colnames(id_map)[1] <- "genes"
   colnames(id_map)[2] <- "symbol"
   
-  # Strip version suffix from both sides before merging
+  # Strip version suffixes (e.g. ENSMUSG00000051951.6 -> ENSMUSG00000051951)
   labeled_results$genes_stripped <- sub("\\.\\d+$", "", labeled_results$genes)
   id_map$genes <- sub("\\.\\d+$", "", id_map$genes)
   
