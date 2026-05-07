@@ -21,33 +21,28 @@ library('fgsea')
 #'
 #' @examples se <- make_se('verse_counts.tsv', 'sample_metadata.csv', c('vP0', 'vAd'))
 make_se <- function(counts_csv, metafile_csv, selected_times) {
-  # read counts matrix
   counts <- read.delim(counts_csv, header = TRUE, stringsAsFactors = FALSE)
-  
-  # read metadata
   meta <- read.csv(metafile_csv, stringsAsFactors = FALSE)
   
-  # filter metadata by selected timepoints
+  # subset metadata
   meta <- meta[meta$timepoint %in% selected_times, ]
   
-  # ensure correct factor ordering (vP0 reference)
-  meta$timepoint <- factor(meta$timepoint)
-  meta$timepoint <- relevel(meta$timepoint, ref = "vP0")
+  meta$timepoint <- factor(meta$timepoint, levels = c("vP0", "vAd"))
   
-  # align counts to metadata samples
-  common_samples <- intersect(colnames(counts), meta$samplename)
+  # sample matching
+  sample_cols <- intersect(colnames(counts), meta$samplename)
   
-  counts <- counts[, c("probeid", common_samples)]
-  meta <- meta[meta$samplename %in% common_samples, ]
+  # KEEP ONLY SAMPLE COLUMNS (no probeid assumption!)
+  counts_sub <- counts[, sample_cols, drop = FALSE]
   
-  # reorder metadata to match counts columns
-  meta <- meta[match(common_samples, meta$samplename), ]
+  # reorder metadata
+  meta <- meta[match(sample_cols, meta$samplename), ]
   
-  # build SummarizedExperiment
+  stopifnot(all(meta$samplename == colnames(counts_sub)))
+  
   se <- SummarizedExperiment::SummarizedExperiment(
-    assays = list(counts = as.matrix(counts[, -1])),
-    colData = meta,
-    rowRanges = NULL
+    assays = list(counts = as.matrix(counts_sub)),
+    colData = meta
   )
   
   return(se)
@@ -372,3 +367,6 @@ top_pathways <- function(fgsea_results, num_paths){
   return(p)
 }
 
+# debugging
+head(counts)
+colnames(counts)
